@@ -71,6 +71,41 @@ classdef Screen < handle
                 self.isOpened = true;
             end
         end
+
+        function openwindow(self) % for demo
+            Screen('Preference', 'SkipSyncTests', 1); % skip tests with demo window
+            if ~self.isOpened
+                disp 'Configuring display...'
+                AssertOpenGL
+                sca
+                % pix screen with the smallest screen number
+                screen = min(Screen('Screens'));
+                [self.win, self.rect] = Screen('OpenWindow',screen,127,[0 22 600 400],[],[],[],[], ...
+                    mor(kPsychNeedFastBackingStore,kPsychNeed16BPCFloat));
+                AssertGLSL
+                fprintf 'Screen Rectangle:'
+                disp(self.rect)
+                self.fps = Screen(screen, 'FrameRate', []);
+                self.frameInterval = Screen('GetFlipInterval', self.win);
+                Priority(MaxPriority(self.win));
+
+                % Set luminance and contrast
+                if self.contrastEnabled
+                    disp 'Loading gamma'
+                    self.savedSettings.gammaTable = Screen('ReadNormalizedGammaTable',self.win);
+                    self.gammaData = load('~/stimulation/gammatable.mat');
+                    self.setContrast(self.gammaData.luminance(end)/10, 0.5)  % while waiting, darken the screen to 1/10 of its max luminance
+                end
+
+                % create photodiode flip textures
+                self.flipRect = round(self.rect(3:4).*self.flipSize);
+                x = 1:self.flipRect(1);
+                self.flipTex(1) = Screen('MakeTexture', self.win, x*0);
+                self.flipTex(2) = Screen('MakeTexture', self.win, mod(x,2)*255);
+                self.flipTex(3) = Screen('MakeTexture', self.win, x*0+255);
+                self.isOpened = true;
+            end
+        end
         
         
         function enableContrast(self, yes)

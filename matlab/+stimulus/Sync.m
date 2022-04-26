@@ -1,6 +1,6 @@
 %{
 # synchronization of stimulus to scan
--> experiment.Scan
+-> session.Session
 ---
 signal_start_time           : double                        # (s) signal start time on stimulus clock
 signal_duration             : double                        # (s) signal duration on stimulus time
